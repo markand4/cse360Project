@@ -22,7 +22,7 @@ public class DisplayGUI  extends JFrame implements ActionListener{
     JLabel lb1;
     //defining the constructor
     public DisplayGUI(){
-        //initiallizing the component
+        //initializing the component
     	
         tf=new JTextField(20);
         ta1=new JTextArea(25,20);
@@ -93,14 +93,15 @@ public class DisplayGUI  extends JFrame implements ActionListener{
         //if the help button is clicked
         else if(str.equals("Help")){
             //showing message to the user
-            JOptionPane.showMessageDialog(bt1, "To compute the Network, type Activity name(multiple characters),Duration(integer),Dependencies(predecessors). Then press Calculate. If an error is displayed, click on reset and enter again. To close the screen, click on X on top right corner.");
+            JOptionPane.showMessageDialog(bt1, "To compute the Network, type Activity name(multiple characters),Duration(integer),Dependencies(predecessors). Then press Calculate. If an error is displayed, click on "
+            		+ " and enter again. To close the screen, click on X on top right corner.");
         }
         else if(str.equals("Project Title")){
           
         }
         //if calculate button is clicked add the text to the text area
-        else if(str.equals("Calculate")){           //THIS IS WHERE YOU WRITE YOUR CODE FOR CALCULATE BUTTON WHERE IT COMPUTES THE USER INPUT
-            ta1.setText(tf.getText());
+        else if(str.equals("Calculate")){          	
+        	ta1.setText(tf.getText());
         }
         //if user want to exit
         else if(str.equals("X")){
@@ -109,6 +110,7 @@ public class DisplayGUI  extends JFrame implements ActionListener{
         //resetting the text area
         else{
             ta1.setText("");
+            tf.setText("");
         }
           
     }
