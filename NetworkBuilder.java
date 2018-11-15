@@ -1,123 +1,133 @@
 import java.util.ArrayList;
-import java.util.Scanner;
 
-public class NodeBuilder {
-
-	public static void main(String[] args) {
-		//Initialize ArrayList to store created nodes
-		ArrayList<Node> nodes = new ArrayList<Node>();
-		
-		Scanner kb = new Scanner(System.in);
-		
-		// Initializing node variables
-		String activityName;  
-		int duration;
-		ArrayList<String> parents = new ArrayList<String>();
-		
-		String input = "";
-		
-		boolean stop = false;
-		int i = 0;
-		do
-		{
-			//Receive user node input
-			System.out.println("Enter Node Information.");
-			input = kb.nextLine();
-			
-			
-			//Setting up new Scanner and delimiter
-			Scanner s = new Scanner(input);
-			s.useDelimiter(",");
-			
-			//Set node variables with user input
-			if(s.hasNext()) {
-				activityName = s.next();
-				//System.out.println(activityName);
-			} else
-				activityName = "Activity " + i;
-			
-			if(s.hasNext()) {
-				duration = s.nextInt();
-				//System.out.println(duration);
-			} else
-				duration = 0;
-			
-			
-			while (s.hasNext()) {
-				parents.add(s.next());
-			}
-			
-			if(!activityName.equals("stop")) {
-				Node myNode = new Node(activityName, duration, parents);
-				nodes.add(myNode);
-			} else {
-				stop = true;
-			}
-			
-			//System.out.println(parents.size());
-			//System.out.println(nodes.size());
-			
-			//reset parents ArrayList
-			parents.clear();
-			
-			//Closing Scanner
-			s.close();
-			
-			i += 1;
-			
-		} while (!stop);
-		
+public class NetworkBuilder {
+	// goal: 
+	static public String networkBuilder(ArrayList<Node> nodes, boolean onlyCrits) {
+		ArrayList<Node> myStack = new ArrayList<Node>();
+		ArrayList<Node> starters = new ArrayList<Node>();
+		ArrayList<Node> enders = new ArrayList<Node>();
+		ArrayList<Path> paths = new ArrayList<Path>();
+		Node lastPopped = null;
+		StringBuffer tempNetwork = new StringBuffer();
+                int longestPath = 0;
+                String criticalPathStr = "";
+		String pathsString = "";
+		//Finding starting nodes
 		for(Node node : nodes) {
-			node.setEnd( nodes );
+			if(node.getParents().isEmpty()) {
+				starters.add(node);
+			} else if(node.getEnd()) {
+				enders.add(node);
+			} 		
 		}
 		
-		//Error checking
-		int errors = 0;
-		for(int x=0;x<nodes.size();x++) {
-			boolean haskids = hasKids(nodes.get(x),nodes);
-			if(haskids==false && nodes.get(x).getParents().isEmpty()) {
-				System.out.print("ERROR: One or more nodes are not connected to the other nodes. \nPlease reset and enter a new sequence of nodes that are connected.");
-				errors = 1;
-				break;
-			}
-		}
-		
-		if(errors == 0) {
-			NetworkBuilder.networkBuilder(nodes);
-		
-		
-			System.out.println("Would you like to change the duration of an activity? (y/n)");
-			char response = kb.next().charAt(0);
-		
-			while(response != ('n')) {
-				System.out.println("Enter the name of the activity to be changed: ");
-				String activity = kb.next();
+		//Building paths
+		for(Node node : enders) {
 			
-				System.out.println("Enter the new duration: ");
-				int newDuration = kb.nextInt();
+			myStack.add(node);
 			
-				int changed = 0;
-				for(int j=0;j<nodes.size();j++) {
-					if(nodes.get(j).getActivityName().equals(activity) && changed == 0) {
-						nodes.get(j).setDuration(newDuration);
-						changed = 1;
+			while(!myStack.isEmpty()) {
+				
+				//Getting the top myStack
+				Node top = myStack.get( myStack.size()-1 );
+				//System.out.println("top:" + top.getActivityName());
+				
+				//If the current top of myStack is a starter
+				if( starters.contains( top ) ) {
+				
+					//Print stack
+					int totalDuration = 0;
+					tempNetwork.delete(0, tempNetwork.length());
+					for(int i = myStack.size()-1;i>=0;i--) {
+						tempNetwork.append(myStack.get(i).getActivityName() + ":" + myStack.get(i).getDuration() + " ");
+						totalDuration += myStack.get(i).getDuration();
+					}
+					tempNetwork.append("Total Duration: " + totalDuration);
+					String temp = tempNetwork.toString();
+					
+					Path myPath = new Path(temp,totalDuration);
+					paths.add(myPath);
+					
+					//Pop because we are the start
+					lastPopped = top;
+					myStack.remove(top);
+				} else {
+					String nextName = grabNext(top,lastPopped);
+//					for(int i=0;i<myStack.size();i++) {
+//						if(myStack.get(i).getActivityName().equals(nextName)) {
+//							System.out.println("ERROR: CYCLE PRESENT");
+//						}
+//					}
+					
+					// Because at the end of the children
+					if(nextName == null) {
+						
+						// Pop ourselves because no children
+						lastPopped = top;
+						myStack.remove( top );					
+						
+					} else {
+						
+						Node nextNode = getNodeFromName(nextName,nodes);
+						myStack.add(nextNode);
+						
 					}
 				}
-				NetworkBuilder.networkBuilder(nodes);
-			
-				System.out.println("Would you like to change the duration of an activity? (y/n)");
-				response = kb.next().charAt(0);
 			}
 		}
-		kb.close();
+		int flag = 0;
+		while(!paths.isEmpty()) {
+			int largestDuration = 0;
+			int largestIndex = -1;
+			String largestContent = "";
+			//choose largest path then next largest etc...
+			for(int i=0;i<paths.size();i++) {
+				if(paths.get(i).getTotalDuration()>largestDuration) {
+					largestDuration = paths.get(i).getTotalDuration();
+					largestContent = paths.get(i).getPathContent();
+					largestIndex = i;
+				}	
+			}
+                        if(longestPath < largestDuration){
+                            longestPath = largestDuration;
+                            criticalPathStr = "Critical path is: "+ largestContent;
+                        }
+                        else if(longestPath == largestDuration){
+                            criticalPathStr = criticalPathStr + "\n" + "and: "+ largestContent;
+                        }
+			flag = 1;
+                        if(onlyCrits == false){
+                            pathsString = pathsString + largestContent + "\n";
+                        }
+			paths.remove(largestIndex);
+		}
+                
+                pathsString = pathsString + criticalPathStr;
+                
+		if(flag==0) {
+			System.out.println("ERROR: One or more cycles are present. \nPlease reset and enter a new sequence of nodes that does not contain cycles.");
+			System.exit(0);
+		}
+		return(pathsString);
 	}
 	
-	static boolean hasKids(Node node, ArrayList<Node> nodes) {
-		for(int i=0;i<nodes.size();i++) {
-			if(nodes.get(i).getParents().contains(node.getActivityName())) return true;
+	static String grabNext(Node top, Node lastPopped) {
+		if(lastPopped == null) {
+			return top.getParents().get(0);	
 		}
-		return false;
+		int index = top.getParents().indexOf(lastPopped.getActivityName());
+		if(index == top.getParents().size()-1) {
+			return null;
+		}
+		return top.getParents().get(index+1);
 	}
-
+	
+	static Node getNodeFromName( String name, ArrayList<Node> nodes ) {
+		for( Node node : nodes ) {
+			if( node.getActivityName().equals( name ) ) {
+				return node;
+			}
+		}
+		return null;
+	}
 }
-
