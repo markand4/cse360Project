@@ -3,28 +3,15 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 public class NodeBuilder {
-
-	public static void main(String[] args) {
-		//Initialize ArrayList to store created nodes
-		ArrayList<Node> nodes = new ArrayList<Node>();
+        ArrayList<Node> nodes = new ArrayList<Node>();
+        
+	ArrayList<String> parents = new ArrayList<String>();
+        
+	public void add(String input) {
 		
-		Scanner kb = new Scanner(System.in);
-		
-		// Initializing node variables
-		String activityName;
-		int duration;
-		ArrayList<String> dependencies = new ArrayList<String>();
-		
-		String input = "";
-		
-		boolean stop = false;
-		int i = 0;
-		do
-		{
 			//Receive user node input
-			System.out.println("Enter Node Information.");
-			input = kb.nextLine();
-			
+			String activityName;
+                        int duration;
 			
 			//Setting up new Scanner and delimiter
 			Scanner s = new Scanner(input);
@@ -33,47 +20,93 @@ public class NodeBuilder {
 			//Set node variables with user input
 			if(s.hasNext()) {
 				activityName = s.next();
-				System.out.println(activityName);
+				//System.out.println(activityName);
 			} else
-				activityName = "Activity " + i;
+				activityName = "Activity " + "not entered";
 			
 			if(s.hasNext()) {
 				duration = s.nextInt();
-				System.out.println(duration);
+				//System.out.println(duration);
 			} else
 				duration = 0;
 			
 			
 			while (s.hasNext()) {
-				dependencies.add(s.next());
+				parents.add(s.next());
 			}
 			
-			if(dependencies.isEmpty()) {
-				dependencies.add("1");
-			}
+			Node myNode = new Node(activityName, duration, parents);
+			nodes.add(myNode);
+			parents.clear();
 			
-			if(!activityName.equals("stop")) {
-				Node myNode = new Node(activityName, duration, dependencies);
-				nodes.add(myNode);
-			} else {
-				stop = true;
-			}
+			//System.out.println(parents.size());
+			//System.out.println(nodes.size());
 			
-			System.out.println(dependencies.size());
-			System.out.println(nodes.size());
+			//reset parents ArrayList
+			
 			
 			//Closing Scanner
 			s.close();
 			
-			i += 1;
-			
-		} while (!stop);
 		
-		for(int x=0;x<nodes.size();x++) {
-			System.out.println(nodes.get(x));
-		}
-		
-		kb.close();
-	}
+        }
+                
+                
+                public String computeNetwork(boolean onlyCrits) {
+                    String pathsString = "";
+                    
+                    for(Node node : nodes) {
+                            node.setEnd( nodes );
+                    }
 
+                    //Error checking
+                    int errors = 0;
+                    for(int x=0;x<nodes.size();x++) {
+                            boolean haskids = hasKids(nodes.get(x),nodes);
+                            if(haskids==false && nodes.get(x).getParents().isEmpty()) {
+                                    System.out.print("ERROR: One or more nodes are not connected to the other nodes. \nPlease reset and enter a new sequence of nodes that are connected.");
+                                    errors = 1;
+                                    break;
+                            }
+                    }
+
+                    if(errors == 0) {
+                            pathsString = NetworkBuilder.networkBuilder(nodes, onlyCrits);
+                    }
+                    return(pathsString);
+                }
+		public void changeDuration(boolean onlyCrits){
+                        Scanner kb = new Scanner(System.in);
+			System.out.println("Would you like to change the duration of an activity? (y/n)");
+			char response = kb.next().charAt(0);
+		
+			while(response != ('n')) {
+				System.out.println("Enter the name of the activity to be changed: ");
+				String activity = kb.next();
+			
+				System.out.println("Enter the new duration: ");
+				int newDuration = kb.nextInt();
+			
+				int changed = 0;
+				for(int j=0;j<nodes.size();j++) {
+					if(nodes.get(j).getActivityName().equals(activity) && changed == 0) {
+						nodes.get(j).setDuration(newDuration);
+						changed = 1;
+					}
+				}
+				NetworkBuilder.networkBuilder(nodes, onlyCrits);
+			
+				System.out.println("Would you like to change the duration of an activity? (y/n)");
+				response = kb.next().charAt(0);
+			}
+                        kb.close();
+		}
+	
+	
+	static boolean hasKids(Node node, ArrayList<Node> nodes) {
+		for(int i=0;i<nodes.size();i++) {
+			if(nodes.get(i).getParents().contains(node.getActivityName())) return true;
+		}
+		return false;
+	}
 }
