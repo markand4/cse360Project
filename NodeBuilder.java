@@ -7,7 +7,7 @@ public class NodeBuilder {
         
 	ArrayList<String> parents = new ArrayList<String>();
         
-	public void add(String input) {
+	public int add(String input) {
 		
 			//Receive user node input
 			String activityName;
@@ -22,13 +22,14 @@ public class NodeBuilder {
 				activityName = s.next();
 				//System.out.println(activityName);
 			} else
-				activityName = "Activity " + "not entered";
+				return(-1);
 			
-			if(s.hasNext()) {
+			if(s.hasNextInt()) {
 				duration = s.nextInt();
 				//System.out.println(duration);
+                                
 			} else
-				duration = 0;
+				return(-1);
 			
 			
 			while (s.hasNext()) {
@@ -47,7 +48,7 @@ public class NodeBuilder {
 			
 			//Closing Scanner
 			s.close();
-			
+			return(0);
 		
         }
                 
@@ -64,9 +65,9 @@ public class NodeBuilder {
                     for(int x=0;x<nodes.size();x++) {
                             boolean haskids = hasKids(nodes.get(x),nodes);
                             if(haskids==false && nodes.get(x).getParents().isEmpty()) {
-                                    System.out.print("ERROR: One or more nodes are not connected to the other nodes. \nPlease reset and enter a new sequence of nodes that are connected.");
                                     errors = 1;
-                                    break;
+                                    return("ERROR: One or more nodes are not connected to the other nodes. \nPlease reset and enter a new sequence of nodes that are connected.");
+                                                                        
                             }
                     }
 
@@ -75,17 +76,9 @@ public class NodeBuilder {
                     }
                     return(pathsString);
                 }
-		public void changeDuration(boolean onlyCrits){
-                        Scanner kb = new Scanner(System.in);
-			System.out.println("Would you like to change the duration of an activity? (y/n)");
-			char response = kb.next().charAt(0);
-		
-			while(response != ('n')) {
-				System.out.println("Enter the name of the activity to be changed: ");
-				String activity = kb.next();
-			
-				System.out.println("Enter the new duration: ");
-				int newDuration = kb.nextInt();
+		public String changeDuration(boolean onlyCrits, String activity, int newDuration){
+                        
+				
 			
 				int changed = 0;
 				for(int j=0;j<nodes.size();j++) {
@@ -94,12 +87,9 @@ public class NodeBuilder {
 						changed = 1;
 					}
 				}
-				NetworkBuilder.networkBuilder(nodes, onlyCrits);
+				return(NetworkBuilder.networkBuilder(nodes, onlyCrits));
 			
-				System.out.println("Would you like to change the duration of an activity? (y/n)");
-				response = kb.next().charAt(0);
-			}
-                        kb.close();
+			
 		}
 	
 	
