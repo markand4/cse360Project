@@ -101,12 +101,12 @@ public class NetworkBuilder {
                         }
 			paths.remove(largestIndex);
 		}
-                
-                pathsString = pathsString + criticalPathStr;
-                
+                if(onlyCrits == true){
+                    pathsString = pathsString + criticalPathStr;
+                }
 		if(flag==0) {
-			System.out.println("ERROR: One or more cycles are present. \nPlease reset and enter a new sequence of nodes that does not contain cycles.");
-			System.exit(0);
+			return("ERROR: One or more cycles are present. \nPlease reset and enter a new sequence of nodes that does not contain cycles.");
+			
 		}
 		return(pathsString);
 	}
